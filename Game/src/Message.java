@@ -7,8 +7,8 @@ public class Message {
     int activePlayerNum; //当前活动玩家数
 }
 class Card{
-	Color color;
-	int point;
+	Color color; // 花色
+	int point; // 点数
 }
 class ActionMsg{
 	int playerId;  //玩家Id

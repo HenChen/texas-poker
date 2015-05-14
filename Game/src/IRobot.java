@@ -1,18 +1,30 @@
 import java.util.ArrayList;
 
 /**
- * @decription 
- *   根据Messge内容，构造出一个决策D(a,b,c,d,e) 
- *   a让牌的概率 
- *   b跟注的概率 
- *   c加注的概率 
- *   d全押的概率
- *   e弃牌的概率 
- *   a+b+c+d+e=1 
+ * @decription 德州扑克机器人
  * @author Haibin Chen
  * @create 2015-5-13
- * @update 2015-5-13
+ * @update 2015-5-13 22:43
  */
+
+
 public interface IRobot {
-	ArrayList<Double> messageHandle(Message msg);
+    /**
+     * @function 根据Message内容，构造出一个决策D(a,b,c,d,e)
+     * @param: 现场消息
+     * @return:ArrayList<Double> 决策decision
+     * @create:2015-5-13
+     * @update:
+     */
+    ArrayList<Double> messageHandle(Message msg);
+
+    /**
+     * 行动消息：check | call | raise num | all_in | fold eol
+     * @function 生成行动消息
+     * @param: IRobot
+     * @return:String
+     * @create:2015-5-13
+     * @update:
+     */
+    String generateActionMessage(Message msg);
 }

@@ -1,8 +1,7 @@
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
- * @decription ×î¼òµ¥µÄrobot£¬ÈÎÒâÌõ¼şÏÂ£¬Ã¿ÖÖĞĞ¶¯µÄ¸ÅÂÊÏàµÈ
+ * @decription æœ€ç®€å•çš„robotï¼Œä»»æ„æ¡ä»¶ä¸‹ï¼Œæ¯ç§è¡ŒåŠ¨çš„æ¦‚ç‡ç›¸ç­‰
  * @author Haibin Chen
  * @create 2015-5-13
  * @update 2015-5-13
@@ -12,38 +11,14 @@ public class SimpleRobot implements IRobot {
     public ArrayList<Double> messageHandle(Message msg) {
 	// TODO Auto-generated method stub
 	ArrayList<Double> decision = new ArrayList<Double>();
-	decision.add(0.2); // ÈÃÅÆµÄ¸ÅÂÊ
-	decision.add(0.2); // ¸ú×¢µÄ¸ÅÂÊ
-	decision.add(0.2); // ¼Ó×¢µÄ¸ÅÂÊ
-	decision.add(0.2); // È«ÑºµÄ¸ÅÂÊ
-	decision.add(0.2); // ÆúÅÆµÄ¸ÅÂÊ
+	decision.add(0.2); // è®©ç‰Œçš„æ¦‚ç‡
+	decision.add(0.2); // è·Ÿæ³¨çš„æ¦‚ç‡
+	decision.add(0.2); // åŠ æ³¨çš„æ¦‚ç‡
+	decision.add(0.2); // å…¨æŠ¼çš„æ¦‚ç‡
+	decision.add(0.2); // å¼ƒç‰Œçš„æ¦‚ç‡
 	return decision;
     }
 
-    public String generateActionMessage(Message msg) {
-	// TODO Auto-generated method stub
-	ArrayList<Double> decision = messageHandle(msg);
-	for (int i = 1; i < decision.size(); i++) {
-	    decision.set(i, decision.get(i) + decision.get(i - 1));
-	}
-	String actionNames[] = { "action", "call", "raise", "all_in", "fold" };
-	String msgStr = "";
-	Random dice = new Random();
-	double cursor = dice.nextDouble();
-	int action = 0;
-	for (; action < decision.size(); action++) {
-	    if (cursor < decision.get(action)) {
-		break;
-	    }
-	}
 
-	msgStr = msgStr + actionNames[action];
-	if (actionNames[action].equals("raise")) {
-	    msgStr = msgStr + " " + (msg.blindPot * 2);
-	}
-	msgStr = msgStr + "\n";
-
-	return msgStr;
-    }
 
 }

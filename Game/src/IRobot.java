@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 /**
- * @decription µÂÖİÆË¿Ë»úÆ÷ÈË
+ * @decription å¾·å·æ‰‘å…‹æœºå™¨äºº
  * @author Haibin Chen
  * @create 2015-5-13
  * @update 2015-5-13 22:43
@@ -10,21 +10,13 @@ import java.util.ArrayList;
 
 public interface IRobot {
     /**
-     * @function ¸ù¾İMessageÄÚÈİ£¬¹¹Ôì³öÒ»¸ö¾ö²ßD(a,b,c,d,e)
-     * @param: ÏÖ³¡ÏûÏ¢
-     * @return:ArrayList<Double> ¾ö²ßdecision
+     * @function æ ¹æ®Messageå†…å®¹ï¼Œæ„é€ å‡ºä¸€ä¸ªå†³ç­–D(a,b,c,d,e)
+     * @param: ç°åœºæ¶ˆæ¯
+     * @return:ArrayList<Double> å†³ç­–decision
      * @create:2015-5-13
      * @update:
      */
     ArrayList<Double> messageHandle(Message msg);
 
-    /**
-     * ĞĞ¶¯ÏûÏ¢£ºcheck | call | raise num | all_in | fold eol
-     * @function Éú³ÉĞĞ¶¯ÏûÏ¢
-     * @param: IRobot
-     * @return:String
-     * @create:2015-5-13
-     * @update:
-     */
-    String generateActionMessage(Message msg);
+
 }

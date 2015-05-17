@@ -6,6 +6,8 @@ import java.io.Writer;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * @decription TODO
@@ -25,7 +27,6 @@ public class game {
     private Reader receiver;
     private Writer sender;
     private IRobot rb;
-    private int smallBlind; // Ğ¡Ã¤×¢£¬×îµÍ¼Ó×¢µÄ1/2
 
     public game(String serverIp, int serverPort, String clientIp,
 	    int clientPort, int playerId) {
@@ -41,7 +42,7 @@ public class game {
     }
 
     /**
-     * @function ÉèÖÃÉú³ÉÓÎÏ·²ßÂÔµÄ»úÆ÷ÈË
+     * @function è®¾ç½®ç”Ÿæˆæ¸¸æˆç­–ç•¥çš„æœºå™¨äºº
      * @param:
      * @return:void
      * @create:2015-5-13
@@ -72,9 +73,9 @@ public class game {
     }
 
     /**
-     * @function Á´½Ó·şÎñÆ÷
+     * @function é“¾æ¥æœåŠ¡å™¨
      * @param:
-     * @return:boolean Á¬½Ó³É¹¦·µ»Øtrue·ñÔò·µ»Øfalse;
+     * @return:boolean è¿æ¥æˆåŠŸè¿”å›trueå¦åˆ™è¿”å›false;
      * @create:2015-5-13
      * @update:
      */
@@ -116,9 +117,13 @@ public class game {
 	}
     }
 
-
+    public void clear(char[] buffer) {
+	for (int i = 0; i < buffer.length; i++) {
+	    buffer[i] = '\0';
+	}
+    }
     /**
-     * @function ½øĞĞµÂÖİÆË¿ËÓÎÏ·±ÈÈü£¬Óë·şÎñÆ÷½»»¥
+     * @function è¿›è¡Œå¾·å·æ‰‘å…‹æ¸¸æˆæ¯”èµ›ï¼Œä¸æœåŠ¡å™¨äº¤äº’
      * @param:
      * @return:void
      * @create:2015-5-13
@@ -126,24 +131,27 @@ public class game {
      */
     public void run() {
 	// TODO Auto-generated method stub
-	char[] msg_ch = new char[1000];
+	char[] buffer = new char[1000];
 	Message msgInfo = new Message();
 	msgInfo.active = true;
 	try {
 	    while (true) {
-		receiver.read(msg_ch); // ½ÓÊÕ
+		clear(buffer);
+		receiver.read(buffer); // æ¥æ”¶
 		MessageReader mr = new MessageReader();
-		msgInfo = mr.readContent(msgInfo, msg_ch);
-		MessageType mt = mr.readType(msg_ch);
+		MessageType mt = mr.readContent(msgInfo, buffer);
 		if (msgInfo.active && mt == MessageType.INQUIRE) {
-		    String action_msg = rb.generateActionMessage(msgInfo);
+		    String action_msg = generateActionMessage(msgInfo);
 		    if (action_msg.contains("all_in")
 			    || action_msg.contains("fold")) {
 			msgInfo.active = false;
 		    }
+		    System.out.println("sending to server: " + action_msg);
 		    sender.write(action_msg);
+
 		    sender.flush();
 		} else if (mt == MessageType.GAME_OVER) {
+		    System.out.println(this.pId + " is going to quit....\n");
 		    receiver.close();
 		    sender.close();
 		    client.close();
@@ -157,6 +165,40 @@ public class game {
 
     }
 
+    /**
+     * è¡ŒåŠ¨æ¶ˆæ¯ï¼šcheck | call | raise num | all_in | fold eol
+     * 
+     * @function ç”Ÿæˆè¡ŒåŠ¨æ¶ˆæ¯
+     * @param: IRobot
+     * @return:String
+     * @create:2015-5-13
+     * @update:
+     */
+    public String generateActionMessage(Message msg) {
+	// TODO Auto-generated method stub
+	ArrayList<Double> decision = rb.messageHandle(msg);
+	for (int i = 1; i < decision.size(); i++) {
+	    decision.set(i, decision.get(i) + decision.get(i - 1));
+	}
+	String actionNames[] = { "action", "call", "raise", "all_in", "fold" };
+	String msgStr = "";
+	Random dice = new Random();
+	double cursor = dice.nextDouble();
+	int action = 0;
+	for (; action < decision.size(); action++) {
+	    if (cursor < decision.get(action)) {
+		break;
+	    }
+	}
+
+	msgStr = msgStr + actionNames[action];
+	if (actionNames[action].equals("raise")) {
+	    msgStr = msgStr + " " + (msg.blindPot * 2);
+	}
+	msgStr = msgStr + "\n";
+
+	return msgStr;
+    }
     public String getName() {
 	return name;
     }

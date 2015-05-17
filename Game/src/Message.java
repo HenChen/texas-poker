@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 /**
- * @decription ÏûÏ¢½á¹¹Ìå£¬±£´æÊÖÅÆ£¬¹«¹²ÅÆÒÔ¼°¸÷¸öÍæ¼Òµ±ÂÖµÄĞĞ¶¯ĞÅÏ¢
+ * @decription æ¶ˆæ¯ç»“æ„ä½“ï¼Œä¿å­˜æ‰‹ç‰Œï¼Œå…¬å…±ç‰Œä»¥åŠå„ä¸ªç©å®¶å½“è½®çš„è¡ŒåŠ¨ä¿¡æ¯
  * @author Haibin Chen
  * @create 2015-5-13
  * @update 2015-5-13 18:45
@@ -9,13 +9,13 @@ import java.util.ArrayList;
 
 
 public class Message {
-    Card myCard1; // ÊÖÅÆ1
-    Card myCard2; // ÊÖÅÆ2
-    ArrayList<Card> publicCard; // ¹«¹²ÅÆ °üÀ¨ ×ªÅÆ£¬ºÓÅÆ
-    ArrayList<ActionMsg> globalMsg; // µ±ÂÖÈ«¾Ö¾ö²ßĞÅÏ¢
+    Card myCard1; // æ‰‹ç‰Œ1
+    Card myCard2; // æ‰‹ç‰Œ2
+    ArrayList<Card> publicCard; // å…¬å…±ç‰Œ åŒ…æ‹¬ è½¬ç‰Œï¼Œæ²³ç‰Œ
+    ArrayList<ActionMsg> globalMsg; // å½“è½®å…¨å±€å†³ç­–ä¿¡æ¯
     int totalPot;
-    int blindPot; // Ã¤×¢
-    int turnId; // µ±¾Ö±ÈÈüÂÖÊı
+    int blindPot; // ç›²æ³¨
+    int turnId; // å½“å±€æ¯”èµ›è½®æ•°
     boolean active;// when all in and fold, it is false, otherwise it is true;
 
     public Message() {
@@ -35,14 +35,14 @@ public class Message {
 }
 
 /**
- * @decription Ö½ÅÆ½á¹¹Ìå
+ * @decription çº¸ç‰Œç»“æ„ä½“
  * @author Haibin Chen
  * @create 2015-5-13
  * @update 2015-5-13
  */
 class Card {
-    Color color; // »¨É«
-    String point; // µãÊı
+    Color color; // èŠ±è‰²
+    String point; // ç‚¹æ•°
 
     public Card() {
     }
@@ -55,7 +55,7 @@ class Card {
 }
 
 /**
- * @decription ĞĞ¶¯ÏûÏ¢½á¹¹Ìå
+ * @decription è¡ŒåŠ¨æ¶ˆæ¯ç»“æ„ä½“
  * @author Haibin Chen
  * @create 2015-5-13
  * @update 2015-5-13
@@ -70,10 +70,10 @@ class ActionMsg {
 	bet = Integer.parseInt(temp[3]);
 	action = Action.getActionType(temp[4]);
     }
-    int playerId; // Íæ¼ÒId
-    Action action; // ¶¯×÷
-    int jetton; // ÊÖÖĞµÄ¶Ä×¢
-    int money; // Ê£Óà½ğ±Ò
-    int bet; // ±¾ÊÖÅÆÀÛ¼ÆÍ¶×¢¶î
-    int turnId; // ÂÖ´Î
+    int playerId; // ç©å®¶Id
+    Action action; // åŠ¨ä½œ
+    int jetton; // æ‰‹ä¸­çš„èµŒæ³¨
+    int money; // å‰©ä½™é‡‘å¸
+    int bet; // æœ¬æ‰‹ç‰Œç´¯è®¡æŠ•æ³¨é¢
+    int turnId; // è½®æ¬¡
 }

@@ -8,40 +8,40 @@
 
 
 /***
- * �ƵĻ�ɫ
+ * 牌的花色
  */
 public enum Color {
-    SPADES, // ����
-    HEARTS, // ����
-    CLUBS, // ÷��
-    DIAMONDS; // ����
+    SPADES, // 黑桃
+    HEARTS, // 红心
+    CLUBS, // 梅花
+    DIAMONDS; // 方块
 }
 
 /***
- * ���ͣ���С����
+ * 牌型，由小到大
  */
 enum Nut_Hand {
-    HIGH_CARD, // ����
-    ONE_PAIR, // һ��
-    TWO_PAIR, // ����
-    THREE_OF_A_KIND, // ����
-    STRAIGHT, // ˳��
-    FLUSH, // ͬ��
-    FULL_HOUSE, // ��«
-    FOUR_OF_A_KIND, // ����
-    STRAIGHT_FLUSH; // ͬ��˳
+    HIGH_CARD, // 高牌
+    ONE_PAIR, // 一对
+    TWO_PAIR, // 两对
+    THREE_OF_A_KIND, // 三条
+    STRAIGHT, // 顺子
+    FLUSH, // 同花
+    FULL_HOUSE, // 葫芦
+    FOUR_OF_A_KIND, // 四条
+    STRAIGHT_FLUSH; // 同花顺
 }
 
 /***
- *���ƶ�������
+ *叫牌动作类型
  */
 enum Action {
-    BLIND, // äע
-    CHECK, // ����
-    CALL, // ����
-    RAISE, // ��ע
-    ALL_IN, // ȫ��
-    FOLD; // ����
+    BLIND, // 盲注
+    CHECK, // 让牌
+    CALL, // 跟牌
+    RAISE, // 加注
+    ALL_IN, // 全下
+    FOLD; // 弃牌
 
     /**
      * @function: Transfer the string name of action to corresponding entity of
@@ -65,19 +65,32 @@ enum Action {
 }
 
 /***
- *���ͺͽ�����Ϣ������
+ *发送和接收消息的类型
  */
 enum MessageType {
-    REG, // ע����Ϣ
-    SEAT_INFO, // ������Ϣ
-    GAME_OVER, // ��Ϸ������Ϣ
-    BLIND, // äע��Ϣ
-    HOLD_HARD, // ������Ϣ
-    INQUIRE, // ѯ����Ϣ
-    ACTION, // �ж���Ϣ
-    FLOG, // ������Ϣ
-    TURN, // ת����Ϣ
-    RIVER, // ������Ϣ
-    SHOWDOWN, // ̯����Ϣ
-    POT_WIN; // �ʳط�����Ϣ
+    REG(""), // 注册消息
+    SEAT_INFO("seat"), // 座次消息
+    GAME_OVER("game-over"), // 游戏结束消息
+    BLIND("blind"), // 盲注消息
+    HOLD_CARD("hold"), // 手牌消息
+    INQUIRE("inquire"), // 询问消息
+    ACTION(""), // 行动消息
+    FLOG("flop"), // 公牌消息
+    TURN("turn"), // 转牌消息
+    RIVER("river"), // 和牌消息
+    SHOWDOWN("showdown"), // 摊牌消息
+    POT_WIN("pot-win"); // 彩池分配消息
+    String tag;
+    MessageType(String t) {
+	this.tag = t;
+    }
+
+    static MessageType getTypeFromTag(String tag) {
+	for (int i = 0; i < MessageType.values().length; i++) {
+	    if (tag.equals(MessageType.values()[i].tag)) {
+		return MessageType.values()[i];
+	    }
+	}
+	return null;
+    }
 }

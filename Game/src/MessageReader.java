@@ -1,4 +1,3 @@
-
 /**
  * @decription the interpretor of server message
  * @author Haibin Chen
@@ -6,17 +5,7 @@
  * @update 2015-5-13
  */
 
-
 public class MessageReader {
-    private final String SEAT_TAG = "seat";
-    private final String GAME_OVER_TAG = "game-over";
-    private final String BLIND_TAG = "blind/";
-    private final String HOLD_TAG = "hold";
-    private final String INQUIRE_TAG = "inquire";
-    private final String FLOP_TAG = "flop";
-    private final String RIVER_TAG = "river";
-    private final String SHOW_TAG = "showdown";
-    private final String POT_TAG = "pot-win";
 
     /**
      * @function get the type of message of meta message from server
@@ -26,27 +15,15 @@ public class MessageReader {
      * @update:
      */
     public MessageType readType(char msg[]) {
-	String mstemp = String.valueOf(msg);
-	if (mstemp.startsWith(SEAT_TAG)) {
-	    return MessageType.SEAT_INFO;
-	} else if (mstemp.startsWith(GAME_OVER_TAG)) {
-	    return MessageType.GAME_OVER;
-	} else if (mstemp.startsWith(this.BLIND_TAG)) {
-	    return MessageType.BLIND;
-	} else if (mstemp.startsWith(this.HOLD_TAG)) {
-	    return MessageType.HOLD_HARD;
-	} else if (mstemp.startsWith(this.INQUIRE_TAG)) {
-	    return MessageType.INQUIRE;
-	} else if (mstemp.startsWith(this.FLOP_TAG)) {
-	    return MessageType.FLOG;
-	} else if (mstemp.startsWith(this.RIVER_TAG)) {
-	    return MessageType.RIVER;
-	} else if (mstemp.startsWith(this.SHOW_TAG)) {
-	    return MessageType.SHOWDOWN;
-	} else if (mstemp.startsWith(this.POT_TAG)) {
-	    return MessageType.POT_WIN;
-	}
-	return null;
+	return readType(String.valueOf(msg));
+    }
+
+    public MessageType readType(String message) {
+	int endIndex = message.indexOf("/");
+	if (endIndex == -1)
+	    return null;
+	String tag = message.substring(0, endIndex);
+	return MessageType.getTypeFromTag(tag);
     }
 
     /**
@@ -56,11 +33,15 @@ public class MessageReader {
      * @create:2015-5-13
      * @update:
      */
-    public String removeTags(char msg[]) {
-	String mstemp = String.valueOf(msg);
-	int index1 = mstemp.indexOf("/");
-	int index2 = mstemp.indexOf("/", index1 + 1);
-	return mstemp.substring(index1 + 3, index2 - 1);
+    public String removeTags(String msg, String tag) {
+	int index1 = msg.indexOf(tag) + tag.length();
+	int index2 = msg.indexOf(tag, index1 + 1) - 1;
+	// System.out.println(index1 + "  " + index2);
+	if (index1 + 3 < index2 - 1)
+	    return msg.substring(index1 + 3, index2 - 1);
+	else {
+	    return "";
+	}
     }
 
     /**
@@ -72,93 +53,105 @@ public class MessageReader {
      * @create:2015-5-13
      * @update:
      */
-    public Message readContent(Message ms, char msg[]) {
-	MessageType mt = this.readType(msg);
-	Message newMs = ms;
-	String content = this.removeTags(msg);
-	int i = 0;
-	String contentSlice[] = content.split("\n");
-	if (mt != null) {
-	    switch (mt) {
-	    case BLIND:
-		/*
-		 * blind/ eol 
-		 * (pid: bet eol)1-2 
-		 * /blind eol
-		 * 
-		 * ÊÕµ½Ã¤×¢ÐÅÏ¢£¬±íÊ¾ÐÂµÄÒ»¾Ö¿ªÊ¼£¬ 1£¬ÇåÀíÏûÏ¢ 2£¬ÉèÖÃÃ¤×¢´óÐ¡ 3£¬¸´Î»ÂÖÊý
-		 */
-		ms.clear();
-		ms.active = true;
-		ms.blindPot = Integer.parseInt(contentSlice[0].substring(6)
-			.trim()) * 2;
-		break;
-	    case HOLD_HARD:
-		/*
-		 * hold/ eol 
-		 * color point eol 
-		 * color point eol 
-		 * /hold eol
-		 * ÊÕµ½ÊÖÅÆÐÅÏ¢£¬½«ÊÖÅÆÐÅÏ¢±£´æ
-		 */
-		ms.myCard1 = new Card(contentSlice[0]);
-		ms.myCard2 = new Card(contentSlice[1]);
-		break;
-	    case INQUIRE:
-		/*
-		 * inquire/ eol 
-		 * (pid jetton money bet blind | check | call |raise | all_in | fold eol)1-8 
-		 * total pot: num eol 
-		 * /inquire eol 
-		 * ÊÕµ½Ñ¯ÎÊÏûÏ¢ºó£¬±£´æ¸ÃÂÖµÄÅÆ¾ÖÐÅÏ¢
-		 */
-		 
-		for (; i < contentSlice.length - 1; i++) {
-		    ActionMsg am = new ActionMsg(contentSlice[i].split(" "));
-		    am.turnId = ms.turnId;
-		    ms.globalMsg.add(am);
-		}
-		ms.totalPot = Integer.parseInt(contentSlice[i].substring(11)
-			.trim());
+    public MessageType readContent(Message ms, char msg[]) {
+	String strMsg = String.valueOf(msg);
+	System.out.println("received from server: meta message\n" + strMsg);
+	if (strMsg.contains(MessageType.GAME_OVER.tag))
+	    return MessageType.GAME_OVER;
+	int next = 0;
+	MessageType mt = null;
+	while (next >= 0 && next < strMsg.length()) {
+	    String message = strMsg.substring(next);
 
-		break;
-	    case FLOG:
-		/*
-		 * flop/ eol 
-		 * color point eol 
-		 * color point eol 
-		 * color point eol
-		 * /flop eol ÊÕµ½¹«ÅÆÏûÏ¢£¬±£´æ¹«ÅÆ,²¢¸üÐÂÂÖ´Î,×ªÅÆ£¬ºÓÅÆÍ¬Ñù´¦Àí
-		 */
-		
-	    case TURN:
-	    case RIVER:
-		for (i = 0; i < contentSlice.length; i++) {
-                    ms.publicCard.add(new Card(contentSlice[i]));
-		}
-		ms.turnId++;
-		break;
-	    default:
+	    MessageType mtTemp = this.readType(message);
+	    if (mtTemp != null)
+		mt = mtTemp;
+	    else {
 		break;
 	    }
+	    String content = this.removeTags(message, mt.tag);
+
+	    int i = 0;
+	    String contentSlice[] = content.split("\n");
+	    if (mt != null) {
+		switch (mt) {
+		case BLIND:
+		    /*
+		     * blind/ eol (pid: bet eol)1-2 /blind eol
+		     * 
+		     * æ”¶åˆ°ç›²æ³¨ä¿¡æ¯ï¼Œè¡¨ç¤ºæ–°çš„ä¸€å±€å¼€å§‹ï¼Œ 1ï¼Œæ¸…ç†æ¶ˆæ¯ 2ï¼Œè®¾ç½®ç›²æ³¨å¤§å° 3ï¼Œå¤ä½è½®æ•°
+		     */
+		    ms.clear();
+		    ms.active = true;
+		    ms.blindPot = Integer.parseInt(contentSlice[0].substring(6)
+			    .trim()) * 2;
+		    break;
+		case HOLD_CARD:
+		    /*
+		     * hold/ eol color point eol color point eol /hold eol
+		     * æ”¶åˆ°æ‰‹ç‰Œä¿¡æ¯ï¼Œå°†æ‰‹ç‰Œä¿¡æ¯ä¿å­˜
+		     */
+		    ms.myCard1 = new Card(contentSlice[0]);
+		    ms.myCard2 = new Card(contentSlice[1]);
+		    break;
+		case INQUIRE:
+		    /*
+		     * inquire/ eol (pid jetton money bet blind | check | call
+		     * |raise | all_in | fold eol)1-8 total pot: num eol
+		     * /inquire eol æ”¶åˆ°è¯¢é—®æ¶ˆæ¯åŽï¼Œä¿å­˜è¯¥è½®çš„ç‰Œå±€ä¿¡æ¯
+		     */
+
+		    for (; i < contentSlice.length - 1; i++) {
+			ActionMsg am = new ActionMsg(contentSlice[i].split(" "));
+			am.turnId = ms.turnId;
+			ms.globalMsg.add(am);
+		    }
+		    ms.totalPot = Integer.parseInt(contentSlice[i]
+			    .substring(11).trim());
+
+		    break;
+		case FLOG:
+		    /*
+		     * flop/ eol color point eol color point eol color point eol
+		     * /flop eol æ”¶åˆ°å…¬ç‰Œæ¶ˆæ¯ï¼Œä¿å­˜å…¬ç‰Œ,å¹¶æ›´æ–°è½®æ¬¡,è½¬ç‰Œï¼Œæ²³ç‰ŒåŒæ ·å¤„ç†
+		     */
+
+		case TURN:
+		case RIVER:
+		    for (i = 0; i < contentSlice.length; i++) {
+			ms.publicCard.add(new Card(contentSlice[i]));
+		    }
+		    ms.turnId++;
+		    break;
+		default:
+		    break;
+		}
+		next = readMessage(strMsg, next);
+	    }
 	}
-	return ms;
+	return mt;
+    }
+
+    public int readMessage(String message, int index) {
+	MessageType mt = readType(message.substring(index));
+	if (mt != null) {
+	    int endTag = message.indexOf(mt.tag, index + 1);
+	    return endTag + mt.tag.length() + 2;
+	} else {
+	    return -1;
+	}
     }
 
     /*
-    public static void main(String args[]) {
-	String msg = "inquire/ \n1001 500 4000 234 call \n1002 400 3000 250 raise \n1004 500 4000 500 all_in \ntotal pot: 1234 \n/inquire \n        ";
-	System.out.println(msg);
-	char ms[] = msg.toCharArray();
-	MessageReader mr = new MessageReader();
-	MessageType mt = mr.readType(ms);
-	Message mes = new Message();
-	Message mes1 = mr.readContent(mes, ms);
-
-	System.out.println(mt.toString());
-	String content = mr.removeTags(ms);
-	System.out.println(content);
-	String cs[] = content.split("\n");
-    }*/
-
+     * public static void main(String args[]) { String msg =
+     * "seat/ \nbutton: 2222 2000 8000 \nsmall blind: 1000 2000 8000 \n/seat";
+     * //
+     * "blind/ \n1000: 50 \n/blind \nhold/ \nHEARTS 3 \nHEARTS 8 \n/hold \ninquire/ \n2222 2000 8000 0 fold \n1000 1950 8000 50 blind \ntotal pot: 50 \n/inquire"
+     * ; System.out.println(msg); char ms[] = msg.toCharArray(); MessageReader
+     * mr = new MessageReader(); MessageType mt = mr.readType(ms); Message mes =
+     * new Message(); mt = mr.readContent(mes, ms);
+     * System.out.println(mt.toString()); String content =
+     * mr.removeTags(String.valueOf(ms), mt.tag); System.out.println(content);
+     * String cs[] = content.split("\n"); }
+     */
 }

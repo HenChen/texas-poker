@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Random;
 
+
 /**
  * @decription TODO
  * @author Haibin Chen
@@ -38,7 +39,7 @@ public class game {
 	this.serverIp = serverIp;
 	this.serverPort = serverPort;
 	this.name = "playera";
-	this.rb = new SimpleRobot();
+	this.rb = new StatisticsRobot();
     }
 
     /**
@@ -89,14 +90,16 @@ public class game {
 	    } catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
+		return false;
 	    } catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
+		return false;
 	    }
 	}
 	return true;
     }
-
+ 
     public static void main(String args[]) {
 	System.out.println(args.length);
 	if (args.length < 5) {
@@ -138,7 +141,7 @@ public class game {
 	    while (true) {
 		clear(buffer);
 		receiver.read(buffer); // 接收
-		MessageReader mr = new MessageReader();
+		MessageReader mr = new MessageReader();	
 		MessageType mt = mr.readContent(msgInfo, buffer);
 		if (msgInfo.active && mt == MessageType.INQUIRE) {
 		    String action_msg = generateActionMessage(msgInfo);
@@ -180,7 +183,7 @@ public class game {
 	for (int i = 1; i < decision.size(); i++) {
 	    decision.set(i, decision.get(i) + decision.get(i - 1));
 	}
-	String actionNames[] = { "action", "call", "raise", "all_in", "fold" };
+	String actionNames[] = { "check", "call", "raise", "all_in", "fold" };
 	String msgStr = "";
 	Random dice = new Random();
 	double cursor = dice.nextDouble();
@@ -190,7 +193,7 @@ public class game {
 		break;
 	    }
 	}
-
+        System.out.println("dice: "+cursor+"   action"+action);
 	msgStr = msgStr + actionNames[action];
 	if (actionNames[action].equals("raise")) {
 	    msgStr = msgStr + " " + (msg.blindPot * 2);

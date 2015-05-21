@@ -1,10 +1,9 @@
 import java.util.ArrayList;
-
 /**
  * @decription 消息结构体，保存手牌，公共牌以及各个玩家当轮的行动信息
  * @author Haibin Chen
  * @create 2015-5-13
- * @update 2015-5-13 18:45
+ * @update 2015-5-19 18:45
  */
 
 
@@ -16,6 +15,7 @@ public class Message {
     int totalPot;
     int blindPot; // 盲注
     int turnId; // 当局比赛轮数
+    int numOfActivePlayers;
     boolean active;// when all in and fold, it is false, otherwise it is true;
 
     public Message() {
@@ -38,19 +38,22 @@ public class Message {
  * @decription 纸牌结构体
  * @author Haibin Chen
  * @create 2015-5-13
- * @update 2015-5-13
+ * @update 2015-5-19
  */
 class Card {
     Color color; // 花色
-    String point; // 点数
+    Point point; // 点数
 
     public Card() {
     }
-
+    public Card(Color color,Point point){
+	this.color = color;
+	this.point = point;
+    }
     public Card(String cardInfo) {
 	String temp[] = cardInfo.split(" ");
 	color = Color.valueOf(temp[0].trim());
-	point = temp[1].trim();
+	point = Point.getFromStr(temp[1].trim());
     }
 }
 

@@ -4,7 +4,6 @@
  * @create 2015-5-13
  * @update 2015-5-13
  */
-
 public class MessageReader {
 
     /**
@@ -14,6 +13,7 @@ public class MessageReader {
      * @create:2015-5-13
      * @update:
      */
+    
     public MessageType readType(char msg[]) {
 	return readType(String.valueOf(msg));
     }
@@ -23,6 +23,7 @@ public class MessageReader {
 	if (endIndex == -1)
 	    return null;
 	String tag = message.substring(0, endIndex);
+
 	return MessageType.getTypeFromTag(tag);
     }
 
@@ -55,7 +56,6 @@ public class MessageReader {
      */
     public MessageType readContent(Message ms, char msg[]) {
 	String strMsg = String.valueOf(msg);
-	System.out.println("received from server: meta message\n" + strMsg);
 	if (strMsg.contains(MessageType.GAME_OVER.tag))
 	    return MessageType.GAME_OVER;
 	int next = 0;
@@ -72,9 +72,13 @@ public class MessageReader {
 	    String content = this.removeTags(message, mt.tag);
 
 	    int i = 0;
+
 	    String contentSlice[] = content.split("\n");
 	    if (mt != null) {
 		switch (mt) {
+		case SEAT_INFO:
+		     ms.numOfActivePlayers = contentSlice.length;
+		     break;
 		case BLIND:
 		    /*
 		     * blind/ eol (pid: bet eol)1-2 /blind eol
@@ -100,7 +104,7 @@ public class MessageReader {
 		     * |raise | all_in | fold eol)1-8 total pot: num eol
 		     * /inquire eol 收到询问消息后，保存该轮的牌局信息
 		     */
-
+		    
 		    for (; i < contentSlice.length - 1; i++) {
 			ActionMsg am = new ActionMsg(contentSlice[i].split(" "));
 			am.turnId = ms.turnId;
@@ -108,14 +112,18 @@ public class MessageReader {
 		    }
 		    ms.totalPot = Integer.parseInt(contentSlice[i]
 			    .substring(11).trim());
+		    System.out.println("");
 
 		    break;
 		case FLOG:
 		    /*
 		     * flop/ eol color point eol color point eol color point eol
 		     * /flop eol 收到公牌消息，保存公牌,并更新轮次,转牌，河牌同样处理
+		     * trunid = 0:盲注阶段
+		     * turnid = 1:公牌阶段
+		     * turnid = 2:转牌阶段
+		     * turnid = 3:河牌阶段
 		     */
-
 		case TURN:
 		case RIVER:
 		    for (i = 0; i < contentSlice.length; i++) {
@@ -141,17 +149,20 @@ public class MessageReader {
 	    return -1;
 	}
     }
-
     /*
-     * public static void main(String args[]) { String msg =
-     * "seat/ \nbutton: 2222 2000 8000 \nsmall blind: 1000 2000 8000 \n/seat";
-     * //
-     * "blind/ \n1000: 50 \n/blind \nhold/ \nHEARTS 3 \nHEARTS 8 \n/hold \ninquire/ \n2222 2000 8000 0 fold \n1000 1950 8000 50 blind \ntotal pot: 50 \n/inquire"
-     * ; System.out.println(msg); char ms[] = msg.toCharArray(); MessageReader
-     * mr = new MessageReader(); MessageType mt = mr.readType(ms); Message mes =
-     * new Message(); mt = mr.readContent(mes, ms);
-     * System.out.println(mt.toString()); String content =
-     * mr.removeTags(String.valueOf(ms), mt.tag); System.out.println(content);
-     * String cs[] = content.split("\n"); }
-     */
+    public static void main(String args[]) {
+	String msg = "seat/ \nbutton: 2222 2000 8000 \nsmall blind: 1000 2000 8000 \n/seat";
+	// "blind/ \n1000: 50 \n/blind \nhold/ \nHEARTS 3 \nHEARTS 8 \n/hold \ninquire/ \n2222 2000 8000 0 fold \n1000 1950 8000 50 blind \ntotal pot: 50 \n/inquire";
+	System.out.println(msg);
+	char ms[] = msg.toCharArray();
+	MessageReader mr = new MessageReader();
+	MessageType mt = mr.readType(ms);
+	Message mes = new Message();
+	mt = mr.readContent(mes, ms);
+	System.out.println(mt.toString());
+	String content = mr.removeTags(String.valueOf(ms), mt.tag);
+	System.out.println(content);
+	String cs[] = content.split("\n");
+    }*/
+
 }

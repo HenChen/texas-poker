@@ -81,6 +81,7 @@ enum MessageType {
     SHOWDOWN("showdown"), // 摊牌消息
     POT_WIN("pot-win"); // 彩池分配消息
     String tag;
+
     MessageType(String t) {
 	this.tag = t;
     }
@@ -92,5 +93,40 @@ enum MessageType {
 	    }
 	}
 	return null;
+    }
+}
+/**
+ * 牌的点数
+ * @decription 
+ * @author Haibin Chen
+ * @create 2015-5-19
+ * @update 2015-5-19
+ */
+enum Point{
+    _2("2"),
+    _3("3"),
+    _4("4"),
+    _5("5"),
+    _6("6"),
+    _7("7"),
+    _8("8"),
+    _9("9"),
+    _10("10"),
+    _J("J"),
+    _Q("Q"),
+    _K("K"),
+    _A("A");
+    String val;
+    Point(String val){
+	 this.val = val;
+    }
+    static Point getFromStr(String val){
+	 Point[] ps = Point.values();
+	 for(int i=0;i<ps.length;i++){
+	     if(val.equals(ps[i].val)){
+		 return ps[i];
+	     }
+	 }
+	 return null;
     }
 }

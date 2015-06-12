@@ -4,7 +4,9 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -19,7 +21,7 @@ import java.util.Random;
 
 public class game {
     private final String name;
-    private final int pId;
+    private final String pId;
     private final String myIp;
     private final int myPort;
     private final String serverIp;
@@ -30,16 +32,14 @@ public class game {
     private IRobot rb;
 
     public game(String serverIp, int serverPort, String clientIp,
-	    int clientPort, int playerId) {
+	    int clientPort, String playerId) {
 	this.pId = playerId;
-
 	this.myIp = clientIp;
-
 	this.myPort = clientPort;
 	this.serverIp = serverIp;
 	this.serverPort = serverPort;
 	this.name = "playera";
-	this.rb = new StatisticsRobot();
+	this.rb = new SimplePredictRobot();
     }
 
     /**
@@ -59,7 +59,6 @@ public class game {
 	    con = connectServer();
 	}
 	if (con) {
-	    // reg: pid pname eol
 	    String rInfo = "reg: " + this.pId + " " + this.name + " \n";
 	    try {
 		sender.write(rInfo);
@@ -83,8 +82,12 @@ public class game {
     private boolean connectServer() {
 	if (client == null) {
 	    try {
-		client = new Socket(serverIp, serverPort, InetAddress
-			.getByName(myIp), myPort);
+		client = new Socket();//(serverIp, serverPort);
+		client.setReuseAddress(true);
+		if(!client.isBound()){
+		    client.bind(new InetSocketAddress(InetAddress.getByName(myIp),myPort));
+		}
+		client.connect(new InetSocketAddress(InetAddress.getByName(serverIp),serverPort));
 		receiver = new InputStreamReader(client.getInputStream());
 		sender = new PrintWriter(client.getOutputStream());
 	    } catch (UnknownHostException e) {
@@ -108,11 +111,13 @@ public class game {
 	    return;
 	}
 	String sIp = args[0];
+	
 	int sPort = Integer.parseInt(args[1]);
 	String mIp = args[2];
 	int mPort = Integer.parseInt(args[3]);
-	int pId = Integer.parseInt(args[4]);
+	String pId = args[4].trim();
 	game g = new game(sIp, sPort, mIp, mPort, pId);
+	
 	boolean con = g.register();
 
 	if (con) {
@@ -136,6 +141,7 @@ public class game {
 	// TODO Auto-generated method stub
 	char[] buffer = new char[1000];
 	Message msgInfo = new Message();
+	msgInfo.myPid = this.pId;
 	msgInfo.active = true;
 	try {
 	    while (true) {
@@ -158,6 +164,7 @@ public class game {
 		    receiver.close();
 		    sender.close();
 		    client.close();
+		  
 		    break;
 		}
 	    }
@@ -206,7 +213,7 @@ public class game {
 	return name;
     }
 
-    public int getpId() {
+    public String getpId() {
 	return pId;
     }
 }

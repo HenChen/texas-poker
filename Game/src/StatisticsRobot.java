@@ -14,23 +14,23 @@ public class StatisticsRobot extends SimpleRobot {
      * key is the product of 5 prime numbers, the value is the rank.card without
      * color
      */
-    private Map<Integer, Integer> rankTableNoColor;
+    protected Map<Integer, Integer> rankTableNoColor;
 
     /**
      * key is the product of 5 prime numbers, the value is the rank.card with
      * color
      */
-    private Map<Integer, Integer> rankTableColor;
+    protected Map<Integer, Integer> rankTableColor;
 
     /**
      * key is the card point,value is the corresponding prime number
      */
-    private Map<Integer, Integer> primeTable; // 存储点数对应的指数
+    protected Map<Integer, Integer> primeTable; // 存储点数对应的指数
 
     /**
      * Cards set
      */
-    private ArrayList<Card> cardsSet;
+    protected ArrayList<Card> cardsSet;
 
     public StatisticsRobot() {
 	setPrimeTable();
@@ -228,7 +228,7 @@ public class StatisticsRobot extends SimpleRobot {
 		}
 	    }
 	}
-	return (winCount+drawCount) / (winCount + loseCount + drawCount);
+	return (winCount+drawCount/2) / (winCount + loseCount + drawCount);
     }
 
     /**

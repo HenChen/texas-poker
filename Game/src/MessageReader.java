@@ -1,3 +1,4 @@
+
 /**
  * @decription the interpretor of server message
  * @author Haibin Chen
@@ -77,7 +78,18 @@ public class MessageReader {
 	    if (mt != null) {
 		switch (mt) {
 		case SEAT_INFO:
-		     ms.numOfActivePlayers = contentSlice.length;
+		     ms.numOfActivePlayers = contentSlice.length; 
+		     //记录可用赌注
+		     String myPid = String.valueOf(ms.myPid);
+		     for(i=0;i<contentSlice.length;i++){
+			 if(contentSlice[i].contains(myPid)){
+			     int bi = contentSlice[i].indexOf(" ",contentSlice[i].indexOf(myPid))+1;
+			     int ei = contentSlice[i].indexOf(" ",bi);
+			     ms.jetton = Integer.parseInt(contentSlice[i].substring(bi,ei).trim());
+			     int ci = contentSlice[i].indexOf(" ",ei+1);
+			     ms.money = Integer.parseInt(contentSlice[i].substring(ei+1,ci).trim());
+			 }
+		     }
 		     break;
 		case BLIND:
 		    /*
@@ -87,8 +99,10 @@ public class MessageReader {
 		     */
 		    ms.clear();
 		    ms.active = true;
-		    ms.blindPot = Integer.parseInt(contentSlice[0].substring(6)
-			    .trim()) * 2;
+		    int si = contentSlice[0].indexOf(":");
+		    
+		    String blindStr = contentSlice[0].substring(si+1).trim();
+		    ms.blindPot = Integer.parseInt(blindStr) * 2;
 		    break;
 		case HOLD_CARD:
 		    /*
@@ -99,21 +113,29 @@ public class MessageReader {
 		    ms.myCard2 = new Card(contentSlice[1]);
 		    break;
 		case INQUIRE:
+		     System.out.println(strMsg.substring(next));
 		    /*
-		     * inquire/ eol (pid jetton money bet blind | check | call
+		     * inquire/ eol 
+		     * (pid jetton money bet blind | check | call
 		     * |raise | all_in | fold eol)1-8 total pot: num eol
 		     * /inquire eol 收到询问消息后，保存该轮的牌局信息
 		     */
 		    
 		    for (; i < contentSlice.length - 1; i++) {
 			ActionMsg am = new ActionMsg(contentSlice[i].split(" "));
+			if(am.playerId == ms.myPid){
+			    ms.jetton = am.jetton;
+			    ms.money = am.money;
+			}
 			am.turnId = ms.turnId;
 			ms.globalMsg.add(am);
 		    }
 		    ms.totalPot = Integer.parseInt(contentSlice[i]
 			    .substring(11).trim());
-		    System.out.println("");
-
+		    this.getLeastCall(ms); 
+		    System.out.println("mybet:"+ms.bet);
+		    System.out.println("leastCall:"+ms.leastCall);
+		    System.out.println("my jetton"+ms.jetton);
 		    break;
 		case FLOG:
 		    /*
@@ -131,6 +153,11 @@ public class MessageReader {
 		    }
 		    ms.turnId++;
 		    break;
+		case SHOWDOWN:
+		     System.out.println("pot-win/");
+		     System.out.println(content);
+		     System.out.println("/pot-win");
+		    
 		default:
 		    break;
 		}
@@ -139,7 +166,7 @@ public class MessageReader {
 	}
 	return mt;
     }
-
+    
     public int readMessage(String message, int index) {
 	MessageType mt = readType(message.substring(index));
 	if (mt != null) {
@@ -149,9 +176,44 @@ public class MessageReader {
 	    return -1;
 	}
     }
-    /*
-    public static void main(String args[]) {
-	String msg = "seat/ \nbutton: 2222 2000 8000 \nsmall blind: 1000 2000 8000 \n/seat";
+     /**
+      * 计算当前跟注的代价和自己当轮累计下注额度
+      * @function TODO
+      * @param: Message 
+      * @return:void
+      * @create:2015-5-23
+      * @update:
+      */
+    private void getLeastCall(Message msg){
+         int i =0;
+         while(i<msg.globalMsg.size() && msg.globalMsg.get(i).turnId!=msg.turnId){
+             i++;
+         }
+         int maxBet=0,myMaxBet = 0;
+         while(i<msg.globalMsg.size()){
+             if(msg.globalMsg.get(i).bet>maxBet){
+        	 maxBet = msg.globalMsg.get(i).bet;
+             }
+             if(msg.globalMsg.get(i).playerId == msg.myPid){
+        	 if(msg.globalMsg.get(i).bet>myMaxBet){
+        	     myMaxBet = msg.globalMsg.get(i).bet;
+        	 }
+             }
+             i++;
+         }
+         msg.bet = myMaxBet;
+         msg.leastCall = maxBet- myMaxBet;
+    }
+    
+    /*public static void main(String args[]) {
+	String msg = "inquire/ \n"+
+	"\n4444 2000 8000 0 fold \n"+ 
+	"2222 1900 6000 100 call \n"+ 
+	"7777 2000 6000 0 fold \n"+ 
+	"1111 1900 6000 100 blind \n"+
+	"5555 1950 6000 50 blind \n"+
+	"total pot: 250 \n"+
+	"/inquire \n";
 	// "blind/ \n1000: 50 \n/blind \nhold/ \nHEARTS 3 \nHEARTS 8 \n/hold \ninquire/ \n2222 2000 8000 0 fold \n1000 1950 8000 50 blind \ntotal pot: 50 \n/inquire";
 	System.out.println(msg);
 	char ms[] = msg.toCharArray();

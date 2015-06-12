@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Hashtable;
 /**
  * @decription 消息结构体，保存手牌，公共牌以及各个玩家当轮的行动信息
  * @author Haibin Chen
@@ -12,11 +13,17 @@ public class Message {
     Card myCard2; // 手牌2
     ArrayList<Card> publicCard; // 公共牌 包括 转牌，河牌
     ArrayList<ActionMsg> globalMsg; // 当轮全局决策信息
+    Hashtable<Integer,RivalStrength> rivalModel;
     int totalPot;
     int blindPot; // 盲注
     int turnId; // 当局比赛轮数
     int numOfActivePlayers;
+    String myPid;
+    int jetton;
+    int bet;
+    int leastCall;
     boolean active;// when all in and fold, it is false, otherwise it is true;
+    int money;
 
     public Message() {
 	myCard1 = new Card();
@@ -67,13 +74,13 @@ class ActionMsg {
     public ActionMsg(String[] temp) {
 	// TODO Auto-generated constructor stub
 	//pid jetton money bet blind | check | call | raise | all_in | fold 
-	playerId = Integer.parseInt(temp[0]);
+	playerId = temp[0].trim();
 	jetton = Integer.parseInt(temp[1]);
 	money = Integer.parseInt(temp[2]);
 	bet = Integer.parseInt(temp[3]);
 	action = Action.getActionType(temp[4]);
     }
-    int playerId; // 玩家Id
+    String playerId; // 玩家Id
     Action action; // 动作
     int jetton; // 手中的赌注
     int money; // 剩余金币

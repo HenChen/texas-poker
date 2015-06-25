@@ -141,6 +141,7 @@ public class game {
 	// TODO Auto-generated method stub
 	char[] buffer = new char[1000];
 	Message msgInfo = new Message();
+        //Message
 	msgInfo.myPid = this.pId;
 	msgInfo.active = true;
 	try {
@@ -148,6 +149,7 @@ public class game {
 		clear(buffer);
 		receiver.read(buffer); // 接收
 		MessageReader mr = new MessageReader();	
+		mr.setRobot(this.rb);
 		MessageType mt = mr.readContent(msgInfo, buffer);
 		if (msgInfo.active && mt == MessageType.INQUIRE) {
 		    String action_msg = generateActionMessage(msgInfo);

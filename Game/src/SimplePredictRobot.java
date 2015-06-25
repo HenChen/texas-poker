@@ -12,6 +12,7 @@ public class SimplePredictRobot extends StatisticsRobot {
 	public SimplePredictRobot() {
 		// TODO Auto-generated constructor stub
 	}
+	
 	@Override
 	public double getWinRate(Message msg){
 		if(msg.publicCard.size()!=3){
@@ -19,7 +20,6 @@ public class SimplePredictRobot extends StatisticsRobot {
 		}
 		else{
 			double hs = getWinRate2(msg);
-			System.out.println("before:"+hs);
 			int[] colors = new int[5];
 			int[] points = new int[5];
 			colors[0] = msg.myCard1.color.ordinal();
@@ -32,14 +32,6 @@ public class SimplePredictRobot extends StatisticsRobot {
 				points[count] = c.point.ordinal();
 				count++;
 			}
-			for(int i=0;i<5;i++){
-				System.out.print(colors[i]+" ");
-			}
-			System.out.println();
-			for(int i=0;i<5;i++){
-				System.out.print(points[i]+" ");
-			}
-			System.out.println();
 			Arrays.sort(colors);
 			Arrays.sort(points);
 			if(colors[0]==colors[3]||colors[1]==colors[4])

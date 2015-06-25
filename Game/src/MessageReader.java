@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Hashtable;
+
 
 /**
  * @decription the interpretor of server message
@@ -14,7 +17,10 @@ public class MessageReader {
      * @create:2015-5-13
      * @update:
      */
-    
+    private IRobot gameRobot;
+    public void setRobot(IRobot robot){
+	this.gameRobot = robot;
+    }
     public MessageType readType(char msg[]) {
 	return readType(String.valueOf(msg));
     }
@@ -82,12 +88,23 @@ public class MessageReader {
 		     //记录可用赌注
 		     String myPid = String.valueOf(ms.myPid);
 		     for(i=0;i<contentSlice.length;i++){
-			 if(contentSlice[i].contains(myPid)){
+			 if(contentSlice[i].contains(": "+myPid)||(contentSlice[i].contains(myPid+" ")&&contentSlice[i].indexOf(myPid)==0)){
+			     System.out.println("|"+contentSlice[i]+"|");
 			     int bi = contentSlice[i].indexOf(" ",contentSlice[i].indexOf(myPid))+1;
 			     int ei = contentSlice[i].indexOf(" ",bi);
 			     ms.jetton = Integer.parseInt(contentSlice[i].substring(bi,ei).trim());
+			     System.out.println(ms.jetton);
 			     int ci = contentSlice[i].indexOf(" ",ei+1);
+			     System.out.println(ei+"|"+ci);
 			     ms.money = Integer.parseInt(contentSlice[i].substring(ei+1,ci).trim());
+			 }else{
+			     //初始化rival模型；
+			     int idStartIndex = contentSlice[i].indexOf(":")+1;
+			     int idEndIndex = contentSlice[i].indexOf(" ",idStartIndex+1);
+			     String id = contentSlice[i].substring(idStartIndex,idEndIndex).trim();
+			     if(!ms.rivalModel.containsKey(id)){
+				 ms.rivalModel.put(id, new RivalStrength());
+			     }
 			 }
 		     }
 		     break;
@@ -123,7 +140,7 @@ public class MessageReader {
 		    
 		    for (; i < contentSlice.length - 1; i++) {
 			ActionMsg am = new ActionMsg(contentSlice[i].split(" "));
-			if(am.playerId == ms.myPid){
+			if(am.playerId.compareTo(ms.myPid)==0){
 			    ms.jetton = am.jetton;
 			    ms.money = am.money;
 			}
@@ -157,7 +174,33 @@ public class MessageReader {
 		     System.out.println("pot-win/");
 		     System.out.println(content);
 		     System.out.println("/pot-win");
-		    
+		     Hashtable<String,ArrayList<Card>> cards = new Hashtable<String,ArrayList<Card>>();
+		     for(String s:contentSlice){
+			 if(s.contains(":")){
+			     int idStartIndex = s.indexOf(":")+1;
+			     int idEndIndex = s.indexOf(" ",idStartIndex+1);
+			     String id = s.substring(idStartIndex,idEndIndex).trim();
+			     
+			     ArrayList<Card> handCard = new ArrayList<Card>();
+			     int colorEndIndex = s.indexOf(" ",idEndIndex+1);
+			     String colorStr = s.substring(idEndIndex,colorEndIndex).trim();
+			     Color color1 = Color.valueOf(colorStr);
+			     int pointEndIndex = s.indexOf(" ",colorEndIndex+1);
+			     String pointStr = s.substring(colorEndIndex,pointEndIndex).trim();
+			     Point point1 = Point.getFromStr(pointStr);
+			     handCard.add(new Card(color1,point1));
+			     
+			     colorEndIndex = s.indexOf(" ",pointEndIndex+1);
+			     colorStr = s.substring(pointEndIndex,colorEndIndex).trim();
+			     Color color2 = Color.valueOf(colorStr);
+			     pointEndIndex = s.indexOf(" ",colorEndIndex+1);
+			     pointStr = s.substring(colorEndIndex,pointEndIndex).trim();
+			     Point point2 = Point.getFromStr(pointStr);
+			     handCard.add(new Card(color2,point2));
+			     cards.put(id, handCard);
+			 }
+		     }
+		     renewRivalModel(ms,cards);
 		default:
 		    break;
 		}
@@ -166,7 +209,85 @@ public class MessageReader {
 	}
 	return mt;
     }
-    
+    /**
+     * @function 更新对手的debuff值
+     * @param: MessageReader
+     * @return:void
+     * @create:2015-6-12
+     * @update:
+     */
+    private void renewRivalModel(Message ms,Hashtable<String,ArrayList<Card>> cards){
+	double raiseStep = 0.02;
+	double maxRaise = 0.3;
+	double maxAll_in = 0.4;
+	double all_inStep = 0.05;
+	
+	if(cards.size()>0){
+	    ArrayList<ActionMsg> actionSeq = ms.getActionSequnceAt(ms.turnId);
+	    for(String s:cards.keySet()){
+		if(s!=ms.myPid){ 
+		    //获取对手的胜率值
+		    Message temp = new Message();
+		    temp.publicCard = ms.publicCard;
+		    temp.myCard1 = cards.get(s).get(0);
+		    temp.myCard2 = cards.get(s).get(1);
+		    double hisRate = this.gameRobot.getWinRate(temp);
+		    for(ActionMsg am:actionSeq){
+			 if(am.playerId.compareTo(s)== 0){
+			     if(am.action == Action.RAISE && am.playerId.compareTo(ms.myPid)!=0){
+				 double debuff = ms.rivalModel.get(s).raise;
+				 Range range = expectRate(debuff,am.action);
+				 RivalStrength rs = ms.rivalModel.get(s);
+				 if(hisRate > range.end){
+				      if(rs.raise<maxRaise-raiseStep){
+					  rs.raise = rs.raise+ raiseStep;
+				      }
+				      ms.rivalModel.put(s,rs);
+				 }else if (hisRate < range.start){   
+				      if(rs.raise>raiseStep){
+					  rs.raise = rs.raise - raiseStep;
+				      }
+				      ms.rivalModel.put(s,rs);
+				 }
+			     }else if(am.action == Action.ALL_IN){
+				 double debuff = ms.rivalModel.get(s).all_in;
+				 Range range = expectRate(debuff,am.action);
+				 RivalStrength rs = ms.rivalModel.get(s);
+				 if(hisRate > range.end){
+				      if(rs.all_in < maxAll_in-all_inStep){
+					  rs.all_in = rs.all_in+ all_inStep;
+				      }
+				      ms.rivalModel.put(s,rs);
+				 }else if (hisRate < range.start){   
+				      if(rs.all_in>all_inStep){
+					  rs.all_in = rs.all_in - all_inStep;
+				      }
+				      ms.rivalModel.put(s,rs);
+				 }
+			     }
+			 }
+		    }
+		}
+	    }
+	}
+    }
+    class Range{
+	double start;
+	double end;
+    }
+    private Range expectRate(double debuff,Action action){
+	Range rg = new Range();
+	double sa=0.3,sb=0.85;
+	double ea=0.3,eb=0.88;
+	
+	rg.start = 0;
+	rg.end = 1;
+	if(action == Action.ALL_IN|| action ==Action.RAISE){
+		rg.start = debuff *sa+sb;
+		rg.end = debuff *ea + eb;
+	}
+	return rg;
+    }
     public int readMessage(String message, int index) {
 	MessageType mt = readType(message.substring(index));
 	if (mt != null) {
@@ -194,7 +315,7 @@ public class MessageReader {
              if(msg.globalMsg.get(i).bet>maxBet){
         	 maxBet = msg.globalMsg.get(i).bet;
              }
-             if(msg.globalMsg.get(i).playerId == msg.myPid){
+             if(msg.globalMsg.get(i).playerId.compareTo(msg.myPid)==0 ){
         	 if(msg.globalMsg.get(i).bet>myMaxBet){
         	     myMaxBet = msg.globalMsg.get(i).bet;
         	 }

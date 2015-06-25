@@ -13,10 +13,10 @@ public class Message {
     Card myCard2; // 手牌2
     ArrayList<Card> publicCard; // 公共牌 包括 转牌，河牌
     ArrayList<ActionMsg> globalMsg; // 当轮全局决策信息
-    Hashtable<Integer,RivalStrength> rivalModel;
+    Hashtable<String,RivalStrength> rivalModel;
     int totalPot;
     int blindPot; // 盲注
-    int turnId; // 当局比赛轮数
+    int turnId;   // 当局比赛轮数
     int numOfActivePlayers;
     String myPid;
     int jetton;
@@ -30,6 +30,7 @@ public class Message {
 	myCard2 = new Card();
 	publicCard = new ArrayList<Card>();
 	globalMsg = new ArrayList<ActionMsg>();
+	rivalModel = new Hashtable<String,RivalStrength>();
 	totalPot = 0;
     }
 
@@ -38,6 +39,15 @@ public class Message {
 	globalMsg.clear();
 	totalPot = 0;
 	turnId = 0;
+    }
+    public ArrayList<ActionMsg> getActionSequnceAt(int turnId){
+	ArrayList<ActionMsg> as = new ArrayList<ActionMsg>();
+	for(ActionMsg ms:globalMsg){
+	    if(ms.turnId == turnId){
+		as.add(ms);
+	    }
+	}
+	return as;
     }
 }
 
@@ -81,9 +91,9 @@ class ActionMsg {
 	action = Action.getActionType(temp[4]);
     }
     String playerId; // 玩家Id
-    Action action; // 动作
-    int jetton; // 手中的赌注
-    int money; // 剩余金币
-    int bet; // 本手牌累计投注额
-    int turnId; // 轮次
+    Action action;   // 动作
+    int jetton;      // 手中的赌注
+    int money;       // 剩余金币
+    int bet;         // 本手牌累计投注额
+    int turnId;      // 轮次
 }

@@ -126,13 +126,13 @@ public class Strategy {
     private List<ArrayList<Double>> decisionTable;
     
     /**
-     * construct decision table with specified strategy file
+     * TODO construct decision table with specified strategy file
      * @param strategyName
      * @throws FileNotFoundException
      */
     private Strategy(StrategyName strategyName){
         String strategyData = null;
-        switch(strategyName){
+        switch(strategyName){ 
         case CON_LEVEL_1:
               strategyData = CON_LEVEL_1_D;
               break;
@@ -161,8 +161,7 @@ public class Strategy {
 		    de.add(Double.valueOf(doubleStr[i].trim()));
 		}
 		decisionTable.add(de);
-	    }
-	    
+	    }  
 	} catch (IOException e) {
 	    e.printStackTrace();
 	} finally {
@@ -174,11 +173,19 @@ public class Strategy {
 		e.printStackTrace();
 	    }
 	}
-
     }
 
+ /**
+  * TODO get the corresponding decision of the cards which has the winRate of strength;
+  * @param strength  
+  *       the strength is the winRate of corresponding cards
+  *       and the range of strength is [0,1]
+  * @author Haibin Chen 
+  * @return
+  */
     @SuppressWarnings("unchecked")
     public ArrayList<Double> getDecisionbyStrengh(double strength) {
+	System.out.println("strength:"+strength);
 	int index = (int) Math.floor(strength*20);
 	index = index>=20? 19:index;
         System.out.println("index: "+index + "---decision:"+this.decisionTable.get(index).toString());
